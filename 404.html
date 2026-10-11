@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <!-- Replaced by `flutter build web --base-href /app/` -->
+  <base href="/clubpulse-mafa/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ClubPulse MAFA — application du club Martial Art Fighter Academy (MAFA). MAFA القوة و الانضباط">
+  <meta name="theme-color" content="#09090B">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ClubPulse MAFA">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>ClubPulse MAFA</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    /* Premium boot screen (same look as the in-app splash: black, red ring, MAFA badge). */
+    html, body { margin: 0; height: 100%; background: #0A0A0C; }
+    #boot { position: fixed; inset: 0; display: grid; place-items: center; overflow: hidden;
+      background: radial-gradient(40% 30% at 50% 35%, rgba(227,38,46,.22), transparent 70%), #0A0A0C;
+      transition: opacity .45s ease; }
+    #boot .wrap { position: relative; width: 220px; height: 220px; display: grid; place-items: center; }
+    #boot .ring { position: absolute; width: 176px; height: 176px; border-radius: 50%;
+      background: conic-gradient(#E3262E, transparent 28%, transparent 72%, #FF8A8F);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+              mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+      animation: boot-spin 2.2s linear infinite; }
+    #boot img { width: 112px; height: 112px; object-fit: contain;
+      filter: drop-shadow(0 14px 30px rgba(227,38,46,.32)); animation: boot-float 2.4s ease-in-out infinite; }
+    #boot .bar { position: absolute; bottom: 11%; left: 50%; width: 180px; height: 2px; transform: translateX(-50%);
+      background: rgba(227,38,46,.15); border-radius: 99px; overflow: hidden; }
+    #boot .bar b { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #8A7340, #FF8A8F, #E3262E);
+      animation: boot-load 6s cubic-bezier(.16,1,.3,1) forwards; }
+    @keyframes boot-spin { to { transform: rotate(360deg); } }
+    @keyframes boot-float { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-7px) scale(1.04); } }
+    @keyframes boot-load { to { width: 70%; } }
+    @media (prefers-reduced-motion: reduce) { #boot .ring, #boot img, #boot .bar b { animation: none; } }
+    #boot .name { position: absolute; bottom: calc(11% + 26px); left: 0; right: 0; text-align: center;
+      font: 600 15px/1.4 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #FF8A8F; letter-spacing: .3px; }
+    #boot .name small { display: block; font-weight: 400; font-size: 12.5px; color: rgba(240,215,140,.7); }
+    #boot-slow { display: none; position: fixed; left: 16px; right: 16px; bottom: 24px; z-index: 10; margin: 0 auto; max-width: 420px;
+      background: #111827; border: 1px solid rgba(227,38,46,.45); border-radius: 16px; padding: 16px;
+      font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #F5F1E6; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+    #boot-slow b { color: #FF8A8F; }
+    #boot-slow .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    #boot-slow a, #boot-slow button { flex: 1 1 auto; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(227,38,46,.6);
+      background: transparent; color: #FF8A8F; font: 600 14px system-ui, sans-serif; text-align: center; text-decoration: none; cursor: pointer; }
+    #boot-slow .primary { background: #E3262E; color: #111; border-color: #E3262E; }
+    #boot-slow .err { margin-top: 8px; font-size: 11px; color: rgba(245,241,230,.55); word-break: break-word; }
+  </style>
+</head>
+<body>
+  <div id="boot" aria-hidden="true">
+    <div class="wrap"><div class="ring"></div><img src="assets/assets/branding/logo-mafa-emblem.png" alt="MAFA"></div>
+    <div class="name">ClubPulse MAFA<small>Chargement… · Loading…</small></div>
+    <div class="bar"><b></b></div>
+  </div>
+  <div id="boot-slow" role="alert">
+    <b>Le chargement prend du temps…</b><br>
+    <span id="boot-slow-text">Vérifiez la connexion puis réessayez. Si la page reste noire, ouvrez le lien dans Chrome ou installez l’application Android.</span>
+    <div class="row">
+      <button class="primary" type="button" onclick="mafaRetry(false)">Réessayer</button>
+      <button type="button" onclick="mafaRetry(true)">Mode compatible</button>
+    </div>
+    <div class="row">
+      <a id="boot-chrome" href="#" style="display:none">Ouvrir dans Chrome</a>
+      <a href="apk/ClubPulse-MAFA-arm64.apk">Télécharger l’APK</a>
+    </div>
+    <div class="err" id="boot-err"></div>
+  </div>
+  <script>
+    // v1.7.1+11 boot guard: WebGL check (CPU rendering when missing), fallback panel after 15 s
+    // or on a boot error (never a black page), removed as soon as Flutter paints.
+    (function () {
+      var started = false;
+      try {
+        var c = document.createElement('canvas');
+        window.mafaHasWebGL = !!(c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl'));
+      } catch (e) { window.mafaHasWebGL = false; }
+      function slow(msg) {
+        if (started) return;
+        var p = document.getElementById('boot-slow');
+        if (!p) return;
+        p.style.display = 'block';
+        if (msg) document.getElementById('boot-err').textContent = String(msg).slice(0, 180);
+      }
+      window.mafaBootFailed = function (e) { slow((e && (e.message || e)) || 'boot error'); };
+      window.mafaRetry = function (cpu) {
+        var u = location.pathname + '?r=' + Date.now() + (cpu ? '&cpu=1' : '') + location.hash;
+        location.replace(u);
+      };
+      if (/Android/i.test(navigator.userAgent || '')) {
+        var a = document.getElementById('boot-chrome');
+        a.href = 'intent://' + location.host + location.pathname + location.hash + '#Intent;scheme=https;package=com.android.chrome;end';
+        a.style.display = '';
+      }
+      window.addEventListener('error', function (e) { if (!started) window.__mafaErr = e.message; });
+      window.addEventListener('unhandledrejection', function (e) { if (!started) window.__mafaErr = (e.reason && (e.reason.message || e.reason)) + ''; });
+      setTimeout(function () { slow(window.__mafaErr); }, 15000);
+      window.addEventListener('flutter-first-frame', function () {
+        started = true;
+        var p = document.getElementById('boot-slow');
+        if (p) p.remove();
+        var b = document.getElementById('boot');
+        if (!b) return;
+        b.style.opacity = '0';
+        setTimeout(function () { b.remove(); }, 460);
+      });
+    })();
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
